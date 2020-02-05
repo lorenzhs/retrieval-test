@@ -1,0 +1,98 @@
+[comment]
+ * After lots of debug output, my main.cpp outputs a summary like the one below.
+ * Between the ###, there is a somewhat mangled name of the strategy,
+ * interleaved with the template parameters
+ * and the non-template parameters in the end.
+ * Then you get the average performance of all runs with those parameters. */
+[/comment]
+
+###16RetrieverChunkedI11GOVStrategyILi3E17UniqueRandomInt64E15ChunkInfoPackedE(C = 10000, (c = 0.91))###
+Bits per Key: 1.1024
+Construction Time per Key: 1.50082
+Hash Time: 9.37494
+Query Time: 36.7175
+
+###16RetrieverChunkedI11GOVStrategyILi4E17UniqueRandomInt64E15ChunkInfoPackedE(C = 10000, (c = 0.97))###
+Bits per Key: 1.03444
+Construction Time per Key: 2.40027
+Hash Time: 9.84363
+Query Time: 41.1413
+
+###16RetrieverChunkedI16OneBlockStrategyI17UniqueRandomInt64E15ChunkInfoPackedE(C = 10000, (c = 0.93))###
+Bits per Key: 1.08775
+Construction Time per Key: 0.22826
+Hash Time: 9.68754
+Query Time: 30.9363
+
+###16RetrieverChunkedI16OneBlockStrategyI17UniqueRandomInt64E15ChunkInfoPackedE(C = 10000, (c = 0.95))###
+Bits per Key: 1.06527
+Construction Time per Key: 0.25512
+Hash Time: 9.37495
+Query Time: 31.4051
+
+###16RetrieverChunkedI16OneBlockStrategyI17UniqueRandomInt64E15ChunkInfoPackedE(C = 10000, (c = 0.97))###
+Bits per Key: 1.04357
+Construction Time per Key: 0.36749
+Hash Time: 9.84363
+Query Time: 37.4988
+
+###16RetrieverChunkedI16TwoBlockStrategyILi16E17UniqueRandomInt64E19ChunkInfoCompressedE(C = 10000, (c = 0.9995))###
+Bits per Key: 1.00243
+Construction Time per Key: 2.67832
+Hash Time: 9.31125
+Query Time: 37.1863
+
+###9RetrieverI11BPZStrategyI17UniqueRandomInt64EE(c = 0.81)###
+Bits per Key: 1.23457
+Construction Time per Key: 0.310806
+Hash Time: 9.3749
+Query Time: 34.8426
+
+###9RetrieverI12FuseStrategyILi3E17UniqueRandomInt64EE(c = 0.91, l = 100)###
+Bits per Key: 1.12089
+Construction Time per Key: 0.275461
+Hash Time: 9.53114
+Query Time: 28.5928
+
+###9RetrieverI12FuseStrategyILi4E17UniqueRandomInt64EE(c = 0.96, l = 200)###
+Bits per Key: 1.05731
+Construction Time per Key: 0.270618
+Hash Time: 9.37495
+Query Time: 33.5926
+
+###9RetrieverI12FuseStrategyILi7E17UniqueRandomInt64EE(c = 0.9849, l = 500)###
+Bits per Key: 1.02754
+Construction Time per Key: 0.390535
+Hash Time: 10.3936
+Query Time: 53.2056
+
+###9RetrieverI13RetrieverLMSSI17UniqueRandomInt64EE(c = 0.9, D = 12)###
+Bits per Key: 1.11116
+Construction Time per Key: 0.780604
+Hash Time: 9.21875
+Query Time: 75.7789
+
+###9RetrieverI13RetrieverLMSSI17UniqueRandomInt64EE(c = 0.99, D = 150)###
+Bits per Key: 1.01059
+Construction Time per Key: 0.870682
+Hash Time: 9.53122
+Query Time: 88.7473
+
+###9RetrieverI15CoupledStrategyILi3E17UniqueRandomInt64EE(c = 0.91, z = 50)###
+Bits per Key: 1.12088
+Construction Time per Key: 0.264212
+Hash Time: 9.06244
+Query Time: 27.9678
+
+###9RetrieverI15CoupledStrategyILi4E17UniqueRandomInt64EE(c = 0.96, z = 66.6667)###
+Bits per Key: 1.05729
+Construction Time per Key: 0.262188
+Hash Time: 9.53114
+Query Time: 32.8645
+
+###9RetrieverI15CoupledStrategyILi7E17UniqueRandomInt64EE(c = 0.9849, z = 72.4638)###
+Bits per Key: 1.02934
+Construction Time per Key: 0.385671
+Hash Time: 10.4686
+Query Time: 52.4984
+

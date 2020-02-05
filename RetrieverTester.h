@@ -29,7 +29,7 @@ struct RetrieverTester {
         return errors != 0;
     }
     
-    void testQueries(const Retriever& R, const vector<Hashable>& keys, int times = 1) {
+    void testQueries(const Retriever& R, const vector<Hashable>& keys, PerformanceLog &log, int times = 1) {
         uint32_t buff = 0;
 		Timer hashTimer;
 		for (int i = 0; i < times; ++i) {
@@ -59,7 +59,6 @@ struct RetrieverTester {
 		cout << "HashCost[ns]  " << hashPerKeyNS;
 		cout << ((buff - sum) ? " " : "") << endl; /* avoid optimising away */
 
-		PerformanceLog& log = PerformanceLog::logs[typeid(Retriever).name()];
 		log.log("Query Time", queryPerKeyNS);
 		log.log("Hash Time", hashPerKeyNS);
     }
@@ -93,6 +92,6 @@ struct RetrieverTester {
 		cout << "Construction Time ([mus/key] / [mus]) " << timePerKeyMS << " / " << dc << endl;
 		cout << "Bits per Key used: " << bitsPerKey << endl;
 		verify(R, keys, values);
-		testQueries(R, keys, times);
+		testQueries(R, keys, log, times);
 	}
 };
