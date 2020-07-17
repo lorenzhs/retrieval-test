@@ -25,8 +25,11 @@ struct ChunkedStrategyExample {
 	inline static bool retrieve(const Hash &H, const void* ptr, uint32_t logicalOffset, uint32_t logicalSize);
 };
 
-template<typename Strategy, typename ChunkInfoManager = ChunkInfoPacked>
+template<typename Strategy_T, typename ChunkInfoManager = ChunkInfoPacked>
 struct RetrieverChunked {
+	static const int MAX_TRIALS = 50;
+
+	using Strategy = Strategy_T;
 	using Hashable = typename Strategy::Hashable_t;
 	using Hash = typename Strategy::Hash;
 	
@@ -55,7 +58,7 @@ struct RetrieverChunked {
 
 		for (size_t i = 0; i < keys.size(); ++i) {
 			Hash H(keys[i],0);
-			uint32_t c = H.chunkHash() % nChunks;
+			uint32_t c = reduce(H.chunkHash(), nChunks);
 			chunkKeys[c].push_back(i);
 			chunkHashes[c].push_back({ H,values[i]});
 		}
@@ -70,6 +73,9 @@ struct RetrieverChunked {
 			Strategy& S = solvers[c];
 			uint8_t seed = 0;
 			for(;;) {
+				if (seed >= MAX_TRIALS) {
+					return;
+				}
 				for (auto& p : hashes) {
 					S.addElement(p.first, p.second);
 				}
@@ -106,9 +112,13 @@ struct RetrieverChunked {
 		}
 	}
 
+	bool hasSucceeded() const {
+		return data.size() > 0;
+	}
+
 	inline bool retrieve(const Hashable& s) const {
 		Hash H(s, 0);
-		uint32_t c = H.chunkHash() % chunkInfo.nChunks();
+		uint32_t c = reduce(H.chunkHash(), chunkInfo.nChunks());
 		ChunkInfo ci(chunkInfo[c]);
 		if (ci.seed) H = Hash(s, ci.seed);
 		return Strategy::retrieve(H,data.data(),ci.logicalOffset, ci.logicalSize);
@@ -116,5 +126,9 @@ struct RetrieverChunked {
 
 	size_t memoryUsage() const {
 		return 8*(sizeof(this) + chunkInfo.extraMemory() + data.size());
+	}
+
+	double getAvgSeed() const {
+		return chunkInfo.getAvgSeed();
 	}
 };

@@ -16,6 +16,7 @@ using namespace std;
 
 template<int k,typename Hashable>
 struct GOVStrategy {
+    static constexpr char stratName[] = "GOV";
 	using Hashable_t = Hashable;
 	struct Hash : DoubleHashSequence<k+1,Hashable> {
 		Hash(const Hashable& str, uint32_t seed) : DoubleHashSequence<k+1,Hashable>(str, seed) {};
@@ -38,7 +39,7 @@ struct GOVStrategy {
 	inline static bool retrieve(const Hash& H, const uint8_t* ptr, uint32_t logicalOffset, uint32_t logicalSize) {
 		bool res = false;
 		for (int i = 0; i < k; ++i) {
-			uint32_t pp = H[i] % logicalSize + logicalOffset;
+			uint32_t pp = reduce(H[i], logicalSize) + logicalOffset;
 			res ^= bool(*(ptr + (pp >> 3)) & (1 << (pp & 0b111)));
 		}
 		return res;
@@ -83,7 +84,7 @@ struct GOVStrategy {
     
 	void addElement(const Hash& H, bool rhs) {
 		array<uint32_t, k> var;
-        for (int i = 0; i < k; ++i) var[i] = H[i] % nvars;
+        for (int i = 0; i < k; ++i) var[i] = reduce(H[i], nvars);
 		/* make sure each varg occurs only once */
         sort(var.begin(),var.end());
         bounded_array<uint32_t,k> varUniq(0);

@@ -53,6 +53,13 @@ struct ChunkInfoPacked {
 	size_t extraMemory() const {
 		return v.size() * sizeof(SizeAndSeed);
 	}
+	double getAvgSeed() const {
+		int res = 0;
+		for (size_t i = 0; i < nChunks(); ++i) {
+			res += (*this)[i].seed;
+		}
+		return (double)res / nChunks();
+	}
 private:
 	vector<SizeAndSeed> v;
 };
@@ -87,6 +94,8 @@ struct ChunkInfoCompressed {
 		offsetBits = var ? 32 - clz(var) : 0;
 		metaBits = offsetBits + seedBits;
 
+		cout << "offsetBits/seedBits: " << (uint32_t)offsetBits << "/" << (uint32_t)seedBits << endl;
+
 		expOffset = 0;
 		actualOffset = 0;
 		BitStreamWriter bsw;
@@ -117,6 +126,13 @@ struct ChunkInfoCompressed {
 	}
 	size_t extraMemory() const {
 		return bs.extraMemory();
+	}
+	double getAvgSeed() const {
+		int res = 0;
+		for (size_t i = 0; i < nChunks(); ++i) {
+			res += (*this)[i].seed;
+		}
+		return (double)res/nChunks();
 	}
 private:
 	BitStream bs;

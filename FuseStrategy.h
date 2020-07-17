@@ -11,6 +11,7 @@ using namespace std;
 
 template<int k,typename Hashable>
 struct FuseStrategy {
+	static constexpr char stratName[] = "Fuse";
 	using Hashable_t = Hashable;
 	using Hash = DoubleHashSequence<k+1,Hashable>;
 
@@ -48,10 +49,10 @@ struct FuseStrategy {
 	}
 
 	void addElement(const Hash& H, bool rhs) {
-		uint32_t base = (H[0] % l) * span;
+		uint32_t base = reduce(H[0], l) * span;
 		Edge e;
 		for (int kk = 0; kk < k; ++kk, base += span) {
-			e[kk] = base + (uint32_t)H[kk+1] % span;
+			e[kk] = base + reduce(H[kk+1],span);
 		}
 		edges.push_back(e);
 		values.push_back(rhs);
@@ -123,10 +124,10 @@ struct FuseStrategy {
 	inline static bool retrieve(const Solution & sol, const Hash & H) {
 		/* this heavily assumes little endian and stuff */
 		/* this heavily assumes l = 8 and stuff */
-		uint32_t base = (H[0] % sol.l) * sol.span;
+		uint32_t base = reduce(H[0], sol.l) * sol.span;
 		bool res = false;
 		for (int kk = 1; kk <= k; ++kk, base += sol.span) {
-			res ^= sol.v[base + H[kk] % sol.span];
+			res ^= sol.v[base + reduce(H[kk],sol.span)];
 		}
 		return res;
 	}

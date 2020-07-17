@@ -11,6 +11,7 @@ using namespace std;
 
 template<int k,typename Hashable>
 struct CoupledStrategy {
+	static constexpr char stratName[] = "Coupled";
 	using Hashable_t = Hashable;
 	using Hash = DoubleHashSequence<k + 1,Hashable>;
 
@@ -45,10 +46,10 @@ struct CoupledStrategy {
 	}
 
 	void addElement(const Hash& H, bool rhs) {
-		uint32_t base = H[0] % n;
+		uint32_t base = reduce(H[0], n);
 		Edge e;
 		for (int kk = 0; kk < k; ++kk) {
-			e[kk] = base + (uint32_t)H[kk + 1] % N;
+			e[kk] = base + reduce(H[kk + 1],N);
 		}
 		edges.push_back(e);
 		values.push_back(rhs);
@@ -120,10 +121,10 @@ struct CoupledStrategy {
 	inline static bool retrieve(const Solution& sol, const Hash& H) {
 		/* this heavily assumes little endian and stuff */
 		/* this heavily assumes l = 8 and stuff */
-		uint32_t base = H[0] % sol.n;
+		uint32_t base = reduce(H[0],sol.n);
 		bool res = false;
 		for (int kk = 1; kk <= k; ++kk) {
-			res ^= sol.v[base + H[kk] % sol.N];
+			res ^= sol.v[base + reduce(H[kk],sol.N)];
 		}
 		return res;
 	}

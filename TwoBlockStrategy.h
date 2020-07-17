@@ -27,7 +27,7 @@ using namespace std;
 /* Todo: Do something reasonable for l > 16 */
 template<int l, typename Hashable>
 struct TwoBlockStrategy {
-public:
+    static constexpr char stratName[] = "TwoBlock";
 	using Hashable_t = Hashable;
 	struct Hash {
 		uint32_t ch,b1,b2;
@@ -61,8 +61,8 @@ public:
 		eqs.reserve(m);
 	}
 	void addElement(const Hash& H, bool rhs) {
-		int vgid1 = H.b1 % meta.sizeLogical;
-		int vgid2 = H.b2 % meta.sizeLogical;
+		int vgid1 = reduce(H.b1, meta.sizeLogical);
+		int vgid2 = reduce(H.b2, meta.sizeLogical);
 		bitset<l> p1(H.p1);
 		bitset<l> p2(H.p2);
 		/* make sure each varg occurs only once */
@@ -107,8 +107,8 @@ public:
 	};
 	inline static bool retrieve(const Hash& H, const void* ptr, uint32_t logicalOffset, uint32_t logicalSize) {
 		static_assert(min(sizeof(unsigned),sizeof(H.p1)) * 8 >= l);
-		unsigned r  = extract<l>(ptr, logicalOffset + H.b1 % logicalSize) & H.p1;
-				 r ^= extract<l>(ptr, logicalOffset + H.b2 % logicalSize) & H.p2;
+		unsigned r  = extract<l>(ptr, logicalOffset + reduce(H.b1, logicalSize)) & H.p1;
+				 r ^= extract<l>(ptr, logicalOffset + reduce(H.b2, logicalSize)) & H.p2;
 		return parityl(r);
 	}
 
@@ -196,14 +196,25 @@ private:
         Duration totalTime; Duration coreTime;
         int coreSystemEqs; int coreSystemVars;
     )
+
+    void clearAuxData() {
+        this->data(); // rescues all data, if present
+        assert(peelLog.size() == 0);
+        assert(lowDegEqs.size() == 0);
+        activationQueue = PQCK(0);
+        activeVarSol = Line();
+        activeVarToVID.clear();
+        eqs.clear();
+        vargs.clear();
+    }
 };
 
 template<int l,typename Hashable>
 bool TwoBlockStrategy<l,Hashable>::runConstruction() {
     PROFILE(TimePoint start = Clock::now();)
-    DEBUG(cout << "% Starting Blocked Structured Solver with m = " << eqs.size() << " equations on n = " << l*vargs.size() << " variables." << endl;)
+        DEBUG(cout << "% Starting Blocked Structured Solver with m = " << eqs.size() << " equations on n = " << l * vargs.size() << " variables." << endl;)
         lazyGauss();
-    DEBUG(cout << "\\end{state}\\endinput" << endl << "Peeled " << peelLog.size() << " variables" << endl;)
+        DEBUG(cout << "\\end{state}\\endinput" << endl << "Peeled " << peelLog.size() << " variables" << endl;)
         bool solved = solveCore(); /* calls gauss */
     if (!solved) { 
         DEBUG(cout << "Core System is not solvable. Aborting." << endl;)
@@ -219,12 +230,15 @@ bool TwoBlockStrategy<l,Hashable>::runConstruction() {
                 } cout << "|";
             } cout << endl;
         )
+        /* solution ready in this->vargs[...].sol
+         * but copy it into a vector and free all the memory */
+        //clearAuxData();
     }
     PROFILE(
         TimePoint end = Clock::now();
         totalTime = std::chrono::duration_cast<Duration>(end - start);
     )
-    return solved; /* solution ready in this->vargs[...].sol */
+    return solved;
 }
 
 template<int l, typename Hashable>

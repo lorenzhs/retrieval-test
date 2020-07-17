@@ -9,6 +9,7 @@ using namespace std;
 
 template<typename Hashable>
 struct RetrieverLMSS {
+    static constexpr char stratName[] = "LMSS";
 	using Hashable_t = Hashable;
     using Hash = DynamicDoubleHashSequence<Hashable>;
     
@@ -72,7 +73,7 @@ struct RetrieverLMSS {
 		int d = deg(dist,H.getFirstHash()) + 3;
 		vector<uint32_t> vec = H.getMoreHashes(d);
 		for (size_t i = 0; i < vec.size(); ++i) {
-			vec[i] = i < 3 ? vec[i] % (n - N) + N : vec[i] % N;
+			vec[i] = i < 3 ? reduce(vec[i],n - N) + N : reduce(vec[i],N);
 		}
 		edges.push_back(std::move(vec));
 		values.push_back(rhs);
@@ -147,11 +148,11 @@ struct RetrieverLMSS {
 		const vector<uint32_t> &vec = H.getMoreHashes(deg(sol.dist,H.getFirstHash()) + 3);
 		bool res = false;
 		for (uint32_t i = 0; i < 3; ++i) {
-			uint32_t p = vec[i] % (sol.v.size() - sol.N) + sol.N;
+			uint32_t p = reduce(vec[i], sol.v.size() - sol.N) + sol.N;
 			res ^= sol.v[p];
 		}
 		for (uint32_t i = 3; i < vec.size(); ++i) {
-			uint32_t p = vec[i] % sol.N;
+			uint32_t p = reduce(vec[i], sol.N);
 			res ^= sol.v[p];
 		}
         return res;

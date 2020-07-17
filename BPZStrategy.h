@@ -5,10 +5,14 @@
 #include<array>
 #include<iostream>
 
+ // not faster in my experiments, maybe smaller memory footprint, unclear.
+ // #define ONE_STACK_PEELING
+
 using namespace std;
 
 template<typename Hashable>
 struct BPZStrategy {
+    static constexpr char stratName[] = "BPZ";
 	using Hashable_t = Hashable;
     using Hash = DoubleHashSequence<4,Hashable>; /* last one is padding */
 	using Solution = vector<bool>;
@@ -33,13 +37,13 @@ struct BPZStrategy {
 
 	BPZStrategy(size_t m, Configuration config) {
 		n = m / config.c;
-		if (n % 7) n = (n + 8) & ~7;
+		if (n & 7) n = (n + 8) & ~7; // extend to byte
 		edges.reserve(n);
 		values.reserve(n);
 	}
 
 	void addElement(const Hash& H, bool rhs) {
-		edges.emplace_back(Edge{ H[0] % n,H[1] % n,H[2] % n });
+		edges.emplace_back(Edge{ reduce(H[0], n), reduce(H[1], n), reduce(H[2], n) });
 		values.emplace_back(rhs);
 	}
 
@@ -55,6 +59,37 @@ struct BPZStrategy {
                 nodes[v].incidenceXOR ^= i;
             }
         }
+#ifdef ONE_STACK_PEELING
+        vector<pair<uint32_t, uint32_t>> peelingOrder;
+        peelingOrder.reserve(1.1*edges.size());
+
+        for (int v = 0; v < n; ++v) {
+            if (nodes[v].degree == 1) {
+                peelingOrder.push_back({ nodes[v].incidenceXOR, v});
+            }
+        }
+
+        int done = 0, scanned = 0;
+        while (scanned < peelingOrder.size()) {
+            auto p = peelingOrder[scanned++];
+            uint32_t v = p.second;
+            uint32_t j = p.first;
+            if (nodes[p.second].degree) {
+                peelingOrder[done++] = p;
+                assert(nodes[v].degree == 1);
+                assert(nodes[v].incidenceXOR == j);
+                Edge& e = edges[j];
+                for (int i : e) {
+                    nodes[i].incidenceXOR ^= j;
+                    nodes[i].degree--;
+                    if (nodes[i].degree == 1) {
+                        peelingOrder.push_back({ nodes[i].incidenceXOR, i});
+                    }
+                }
+            }
+        }
+        peelingOrder.resize(done);
+#else
         stack<int> deg1Verts;
         for(int i = 0; i < n; ++i) {
             if (nodes[i].degree == 1) {
@@ -63,6 +98,7 @@ struct BPZStrategy {
         }
         
         vector<pair<uint32_t,uint32_t>> peelingOrder;
+        peelingOrder.reserve(edges.size());
         while(!deg1Verts.empty()) {
             int v = deg1Verts.top(); deg1Verts.pop();
             if (nodes[v].degree) {
@@ -79,6 +115,7 @@ struct BPZStrategy {
                 }
             }
         }
+#endif
         int remaining = 0;
         for(NodeInfo &ni : nodes) {
             remaining += ni.degree;
@@ -104,6 +141,6 @@ struct BPZStrategy {
 
 	inline static bool retrieve(const Solution &sol, const Hash &H) {
 		size_t n = sol.size();
-		return sol[H[0] % n] ^ sol[H[1] % n] ^ sol[H[2] % n];
+		return sol[reduce(H[0],n)] ^ sol[reduce(H[1],n)] ^ sol[reduce(H[2],n)];
 	}
 };

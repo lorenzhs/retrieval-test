@@ -15,6 +15,7 @@
 #include<algorithm>
 #include "MurmurHash3.h"
 #include "MurmurHash3.cpp"
+#include "xxhash.hpp"
 
 using namespace std;
 using std::chrono::duration_cast;
@@ -72,7 +73,15 @@ uint32_t benchmark_mus_median(Lambda f, int times) {
 
 struct PerformanceLog {
 	static map<string, PerformanceLog> logs;
+	static vector<string> creationOrder;
 	map<string, vector<double>> data;
+	string shortName, texConfig;
+	void setShortName(string name) {
+		shortName = name;
+	}
+	void setTexConfig(string name) {
+		texConfig = name;
+	}
 	void log(string key, double value) {
 		data[key].push_back(value);
 	}
@@ -161,6 +170,14 @@ void do_hash(const string& s, uint32_t seed, void* buf) {
 	MurmurHash3_x64_128(s.c_str(), s.size(), seed, buf);
 }
 
+/* What I imagine it does:
+uint32_t reduce(uint32_t hash, uint32_t domain) {
+	return hash % domain;
+}*/
+// What it actually does:
+inline uint32_t reduce(uint32_t hash, uint32_t domain) {
+	return ((uint64_t)hash * domain) >> 32;
+}
 
 #if USE_MULTIPLY_SHIFT_HASHING
 
@@ -185,6 +202,12 @@ void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
 	}
 }
 
+#elif USE_XXHASH
+void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
+	using hash_t = xxh::hash128_t;
+	hash_t* p = (hash_t*)buf;
+	*p = xxh::xxhash3<128>({ s.val }, (uint64_t)seed);
+}
 #else
 void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
 	MurmurHash3_x64_128(&s, sizeof(UniqueRandomInt64), seed, buf);
@@ -334,7 +357,7 @@ bool scalarProduct(IntType i1, IntType i2) = delete;
 	#include <intrin.h>
 	inline bool parityll(uint64_t x) { return __popcnt64(x) & 1; }
 	inline bool parityl(uint32_t x) { return __popcnt(x) & 1; }
-	template<> inline bool scalarProduct<unsigned char     >(unsigned char      i1, unsigned char      i2) { return __popcnt16(i1 & i2) & 1; }
+	template<> inline bool scalarProduct<unsigned char     >(unsigned char      i1, unsigned char      i2) { return __popcnt  (i1 & i2) & 1; }
 	template<> inline bool scalarProduct<unsigned long     >(unsigned long      i1, unsigned long      i2) { return __popcnt  (i1 & i2) & 1; }
 	template<> inline bool scalarProduct<unsigned long long>(unsigned long long i1, unsigned long long i2) { return __popcnt64(i1 & i2) & 1; }
 

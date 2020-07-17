@@ -1,0 +1,1 @@
+g++ -Wno-attributes -march=native -O3 -DNDEBUG main.cpp -o main -std=c++17 && ./main
