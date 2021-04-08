@@ -6,6 +6,10 @@
 #include<algorithm>
 using namespace std;
 
+#include "util/util.h"
+
+namespace walzer {
+
 // Classes to Capture Meta Information on Chunks
 
 struct ChunkInfo {
@@ -25,7 +29,7 @@ struct ChunkInfoPacked {
 	ChunkInfoPacked(const vector<uint32_t> &sizes, const vector<uint8_t> &seeds) : v(sizes.size()+1) {
 		assert(sizes.size() == seeds.size());
 		uint32_t nChunks = sizes.size();
-		
+
 		uint32_t sumSeeds = std::accumulate(seeds.begin(),seeds.end(), uint32_t(0), std::plus<uint32_t>());
 		uint8_t  maxSeed  = *std::max_element(seeds.begin(), seeds.end());
 		cout << "Average Seed = " << (double)sumSeeds / nChunks << ", Largest Seed = " << (int)maxSeed << endl;
@@ -99,7 +103,7 @@ struct ChunkInfoCompressed {
 		expOffset = 0;
 		actualOffset = 0;
 		BitStreamWriter bsw;
-		for (int i = 0; i < nc; ++i) {
+		for (uint32_t i = 0; i < nc; ++i) {
 			bsw.write(actualOffset - expOffset + nullOffset, offsetBits);
 			bsw.write(seeds[i], seedBits);
 			actualOffset += sizes[i];
@@ -141,3 +145,5 @@ private:
 	uint32_t nullOffset; // dieser positive Wert entspricht "Null Abweichung zur Erwartung".
 	uint8_t offsetBits, seedBits, metaBits;
 };
+
+}

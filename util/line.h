@@ -5,6 +5,8 @@
 #include<cassert>
 using namespace std;
 
+namespace walzer {
+
 /* todo: properly understand move semantics */
 
 template<typename T>
@@ -13,7 +15,7 @@ vector<T> operator^(const vector<T> &v1, const vector<T> &v2) {
     for(int i = 0; i < (int)v2.size(); ++i) {
         v3[i] ^= v2[i];
     }
-    return std::move(v3);
+    return v3;
 }
 template<typename T>
 vector<T>& operator^=(vector<T> &v1, const vector<T> &v2) {
@@ -29,14 +31,14 @@ void swap(Line &l1, Line &l2);
 struct Line {
     vector<uint64_t> v;
     int nBits;
-    
+
     Line(int nBits, uint64_t bits) : nBits(nBits) {
         assert(nBits <= 64);
         resize(nBits);
         v[0] = bits;
     };
-    
-    
+
+
     /* move constructor */
     Line(Line &&other) noexcept {
         swap(*this, other);
@@ -76,7 +78,7 @@ struct Line {
     }
     inline bool operator[](int i) const {
         return getBit(i);
-    }    
+    }
     Line copy() const {
         Line L;
         L.v = v;
@@ -117,13 +119,13 @@ struct Line {
     }
     Line& addShifted(const Line &other, int shift) {
         assert(other.size() + shift <= size());
-        
+
         uint8_t* target = (uint8_t*)v.data();
         uint8_t* source = (uint8_t*)other.v.data();
-        
+
         /* full bytes are easy */
         target += shift >> 3; shift &= 7;
-        
+
         int bytes = (other.size() >> 3) + 8; // ein reserve uint64_t existiert
         while(bytes >= 15) {
             *(uint64_t*)target     ^= (*(uint64_t*)source) << shift;
@@ -138,16 +140,16 @@ struct Line {
         }
         return *this;
     }
-    
+
     bool scalarProductShifted(const Line &other, int shift) const {
         assert(other.size() + shift <= size());
-        
+
         const uint8_t* target = (uint8_t*)v.data();
         const uint8_t* source = (uint8_t*)other.v.data();
         uint64_t result(0);
         /* full bytes are easy */
         target += shift >> 3; shift &= 7;
-        
+
         int bytes = (other.size() >> 3) + 8; // ein reserve uint64_t existiert
         while(bytes >= 15) {
             result ^= *(uint64_t*)target & (*(uint64_t*)source << shift);
@@ -162,21 +164,21 @@ struct Line {
         }
         return parityll(result);
     }
-    
-    
+
+
     struct BitsView {
         int byteOffset;
         int shift;
         uint64_t mask;
         BitsView(int firstBit, int numBits) : byteOffset(firstBit >> 3), shift(firstBit & 7), mask((1 << numBits)-1) {}
     };
-    
+
     struct BitView {
         int byteOffset;
         uint8_t mask;
         BitView(int offset) : byteOffset(offset >> 3), mask(1 << (offset & 7)) {}
     };
-    
+
     inline uint64_t get(const BitsView &view) const {
         return ((*((uint64_t*)(((uint8_t*)v.data())+view.byteOffset))) >> view.shift) & view.mask;
     }
@@ -202,8 +204,8 @@ ostream& operator<<(ostream &out, const Line &l) {
 }
 
 void swap(Line &l1, Line &l2) {
-    swap(l1.v,l2.v);
-    swap(l1.nBits,l2.nBits);
+    std::swap(l1.v,l2.v);
+    std::swap(l1.nBits,l2.nBits);
 }
 
 bool scalarProduct(const Line &i1, const Line &i2, int knownZeroes = 0) {
@@ -217,4 +219,5 @@ bool scalarProduct(const Line &i1, const Line &i2, int knownZeroes = 0) {
     return parityll(prod);
 }
 
+}
 #endif

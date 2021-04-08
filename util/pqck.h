@@ -3,6 +3,8 @@
 #include<cassert>
 using namespace std;
 
+namespace walzer {
+
 /* very simple class that implements a priority queue
  * with a change key function. Keys are changed simply
  * by adding the element into the queue again. */
@@ -45,3 +47,5 @@ public:
         return ele;
     }
 };
+
+}

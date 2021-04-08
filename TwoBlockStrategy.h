@@ -24,6 +24,8 @@
 
 using namespace std;
 
+namespace walzer {
+
 /* Todo: Do something reasonable for l > 16 */
 template<int l, typename Hashable>
 struct TwoBlockStrategy {
@@ -45,7 +47,7 @@ struct TwoBlockStrategy {
 			return out << "(c = " << config.c << ")";
 		}
 	};
-	
+
 	struct Meta {
 		uint32_t sizeLogical;
 		uint32_t sizeBytes;
@@ -120,7 +122,7 @@ private:
         int g;
         int o;
     } VID;
-    
+
     /* PeelInfo is dictates that the variable with id vid
      * must be initalised to fulfill a certain equation. */
     struct PeelInfo{
@@ -128,7 +130,7 @@ private:
         bitset<l> p;
     };
     stack<PeelInfo> peelLog;
-    
+
     void lazyGauss();
         bitset<l> solveEquation(int eqID);
         void printState();
@@ -140,7 +142,7 @@ private:
     bool fourRussianGauss(/*in */Matrix &M,
            /*in */vector<bool> &rhss,
            /*out*/Line &solution);
-    
+
     /* Equations are sparse in the beginning.
      * Solved Equations need never be considered again,
      * an entry in the peelLog guarantees that they will be fulfilled.
@@ -162,7 +164,7 @@ private:
         Line activeCoeff;
         bool rhs;
     };
-    
+
     struct VGroup {
         VGroup() : activePos(), peeled(), activated(false) {};
         float priority() {
@@ -187,7 +189,7 @@ private:
     vector<VID> activeVarToVID;
     vector<Equation> eqs; /* constantly modified */
     vector<VGroup> vargs;
-    
+
     /* profiling */
     PROFILE(
         typedef std::chrono::high_resolution_clock Clock;
@@ -216,7 +218,7 @@ bool TwoBlockStrategy<l,Hashable>::runConstruction() {
         lazyGauss();
         DEBUG(cout << "\\end{state}\\endinput" << endl << "Peeled " << peelLog.size() << " variables" << endl;)
         bool solved = solveCore(); /* calls gauss */
-    if (!solved) { 
+    if (!solved) {
         DEBUG(cout << "Core System is not solvable. Aborting." << endl;)
     } else {
         DEBUG(cout << "Done. Doing backsubstitution... ";)
@@ -251,7 +253,7 @@ bitset<l> TwoBlockStrategy<l,Hashable>::solveEquation(int eqID) {
      * returns the id of the variable and the pattern of the eq */
     VGID vgid(eq.vgids[0]);
     VGroup &vg(vargs[vgid]);
-    
+
     /* find and remove the corresponding line in the varGroup */
         int pos = vg.findLine(eqID);
         bitset<l> p(vg.lines[pos]);
@@ -262,7 +264,7 @@ bitset<l> TwoBlockStrategy<l,Hashable>::solveEquation(int eqID) {
         // remove
         vg.lines[pos] = vg.lines.back(); vg.lines.pop_back();
         vg.eqIDs[pos] = vg.eqIDs.back(); vg.eqIDs.pop_back();
-    
+
     /* add the equation to each equation involving the chosen bit */
     for(int i = 0; i < (int)vg.eqIDs.size(); ++i) {
         if (!(vg.lines[i][bitIdx])) continue;
@@ -270,7 +272,7 @@ bitset<l> TwoBlockStrategy<l,Hashable>::solveEquation(int eqID) {
         Equation &otherEq(eqs[vg.eqIDs[i]]);
         otherEq.rhs ^= eq.rhs;
         otherEq.activeCoeff ^= eq.activeCoeff;
-        
+
         /* remove the equation, if needed */
         if (vg.lines[i].none()) {
             otherEq.removeVGID(vgid);
@@ -282,7 +284,7 @@ bitset<l> TwoBlockStrategy<l,Hashable>::solveEquation(int eqID) {
     }
     vg.peeled |= bit;
     activationQueue.changeKey(vgid,vg.priority());
-    
+
     return p;
 }
 
@@ -298,12 +300,12 @@ void TwoBlockStrategy<l, Hashable>::printState() {
     cout << "\\begin{state}\\begin{tabular}{";
     cout << "cc"; for(int i = 0; i < nactive; cout << (i++ ? ":" : "|") << "c");
     cout << "|c}" << endl;
-    
+
     string S(nactive*(l+1),' ');
     for(int i = 0; i < nactive; ++i) {
         S[i*(l+1)+l] = '&';
     }
-    
+
     cout << "&\\densecol";
     for(int i = 0; i < (int)vargs.size(); ++i) {
         if (!vargs[i].activated && vargs[i].eqIDs.size()) {
@@ -311,7 +313,7 @@ void TwoBlockStrategy<l, Hashable>::printState() {
         }
     }
     cout << "&\\rhscol\\\\" << endl;
-    
+
     for(int state : {EQ_DENSE,EQ_SPARSE}) {
         cout << "\\hline" << endl;
         for(int eqID = 0; eqID < (int)eqs.size(); ++eqID) {
@@ -353,11 +355,11 @@ void TwoBlockStrategy<l, Hashable>::lazyGauss() {
             lowDegEqs.push(eqID);
         }
     }
-    
+
     for(VGID vgid = 0; vgid < (int)vargs.size(); ++vgid) {
         activationQueue.insert(vgid,vargs[vgid].priority());
     }
-    
+
     DEBUG_DETAILED(bool change = true;)
     for(;;) {
         DEBUG_DETAILED(if(change) printState(); change = false;)
@@ -394,7 +396,7 @@ void TwoBlockStrategy<l, Hashable>::lazyGauss() {
                     activeVarToVID.push_back(VID{vgid,i});
                 }
             }
-            
+
             for(int i = 0; i < (int)vg.eqIDs.size(); ++i) {
                 EqID eqID(vg.eqIDs[i]);
                 Equation &eq(eqs[eqID]);
@@ -424,12 +426,12 @@ void TwoBlockStrategy<l, Hashable>::backSubstitution() {
 
     /* assume activeSols is initialised and the information
      * from there already propagated to the respective vargs. */
-    
+
     while(!peelLog.empty()) {
         PeelInfo pi(peelLog.top()); peelLog.pop();
         Equation &eq(eqs[pi.eqID]);
         VGroup   &vg(vargs[eq.vgids[0]]);
-        
+
         bool activeProd = scalarProduct(eq.activeCoeff, activeVarSol);
         bool sparseProd = scalarProduct(pi.p.to_ulong(), vg.sol.to_ulong());
         bool toggle = activeProd ^ sparseProd ^ eq.rhs;
@@ -453,7 +455,7 @@ bool TwoBlockStrategy<l, Hashable>::solveCore() {
             rhss.push_back(eq.rhs);
         }
     }
-    
+
     DEBUG(cout << "Solving core system of size " << M.size() << " x " << (M.size() ? M[0].size() : 0) << endl;)
     PROFILE((coreSystemEqs = M.size(), coreSystemVars = activeVarToVID.size());)
     activeVarSol.resize(activeVarToVID.size());
@@ -462,7 +464,7 @@ bool TwoBlockStrategy<l, Hashable>::solveCore() {
     PROFILE(TimePoint coreEnd = Clock::now();
             coreTime  = std::chrono::duration_cast<Duration>(coreEnd - coreStart);)
     if (!res) return false;
-    
+
     DEBUG_DETAILED(cout << "Core Solution (activation order): ";)
 
     /* attach solutions to corresponding variables */
@@ -485,13 +487,13 @@ bool TwoBlockStrategy<l, Hashable>::fourRussianGauss(/*in */Matrix &M,
     int n = M.size();
     if (n == 0) return true;
     int m = M[0].size();
-    
+
 
     int r = 0, c = 0;
     auto chooseK = [&]() -> int {
         return (m - c <= 3 ? 1 : log2(m - c) - log2(log2(m - c)));
     };
-    
+
     vector<int> pivots;
     while ((r < n) && (c < m)) {
         int k = chooseK();
@@ -503,7 +505,7 @@ bool TwoBlockStrategy<l, Hashable>::fourRussianGauss(/*in */Matrix &M,
         for (int rr = r; rr < n; ++rr) {
             uint32_t p = M[rr].get(view);
             if (!p) continue;
-            
+
             if (T[p].size()) {
                 M[rr].addFrom(T[p],c);
                 assert(M[rr].get(view) == 0);
@@ -531,8 +533,8 @@ bool TwoBlockStrategy<l, Hashable>::fourRussianGauss(/*in */Matrix &M,
         for (uint32_t p = 1; (int)p < (1 << k); ++p)
             if (T[p].size())
                 pivotPattern[ctz(p)] = p;
-        
-        int oldr = r;
+
+        [[maybe_unused]] int oldr = r;
         for(int cc = 0; cc < k; ++cc) {
             int p = pivotPattern[cc];
             if (p != -1) {
@@ -605,11 +607,13 @@ bool TwoBlockStrategy<l, Hashable>::gauss(/*in */Matrix &M,
         /* this is an or */
         if (rhss[rr]) return false;
     }
-    
+
     /* system is solvable; infer one solution,
      * initialise variables from left to right. */
     for(int rr = r-1; rr >= 0; --rr) {
         solution.setBit(pivots[rr], scalarProduct(solution, M[rr], pivots[rr]) ^ rhss[rr]);
     }
     return true;
+}
+
 }
