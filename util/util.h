@@ -18,6 +18,9 @@
 #include <vector>
 //#include "xxhash.hpp"
 
+#define XXH_INLINE_ALL
+#include <xxhash.h>
+
 using namespace std;
 using std::chrono::duration_cast;
 
@@ -174,9 +177,6 @@ mt19937_64 UniqueRandomInt64::rnd;
 void do_hash(const string& s, uint32_t seed, void* buf) {
     murmur::MurmurHash3_x64_128(s.c_str(), s.size(), seed, buf);
 }
-void do_hash(uint64_t key, uint32_t seed, void* buf) {
-    murmur::MurmurHash3_x64_128(&key, sizeof(uint64_t), seed, buf);
-}
 
 /* What I imagine it does:
 uint32_t reduce(uint32_t hash, uint32_t domain) {
@@ -213,14 +213,16 @@ void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
 
 #elif USE_XXHASH
 void do_hash(uint64_t key, uint32_t seed, void* buf) {
-    using hash_t = xxh::hash128_t;
-    hash_t* p = (hash_t*)buf;
+    XXH128_hash_t* p = reinterpret_cast<XXH128_hash_t*>(buf);
     *p = XXH3_128bits_withSeed(reinterpret_cast<const char*>(&key), sizeof(uint64_t), seed);
 }
 void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
     do_hash(s.val, seed, buf);
 }
 #else
+void do_hash(uint64_t key, uint32_t seed, void* buf) {
+    murmur::MurmurHash3_x64_128(&key, sizeof(uint64_t), seed, buf);
+}
 void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
     murmur::MurmurHash3_x64_128(&s, sizeof(UniqueRandomInt64), seed, buf);
 }
@@ -392,7 +394,7 @@ int popcount(const bitset<l>& s) {
     return __builtin_popcount(s.to_ulong());
 }
 #else
-#include <intrin.h>
+//#include <intrin.h>
 inline bool parityll(uint64_t x) {
     return __popcnt64(x) & 1;
 }

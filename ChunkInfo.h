@@ -30,9 +30,9 @@ struct ChunkInfoPacked {
 		assert(sizes.size() == seeds.size());
 		uint32_t nChunks = sizes.size();
 
-		uint32_t sumSeeds = std::accumulate(seeds.begin(),seeds.end(), uint32_t(0), std::plus<uint32_t>());
-		uint8_t  maxSeed  = *std::max_element(seeds.begin(), seeds.end());
-		cout << "Average Seed = " << (double)sumSeeds / nChunks << ", Largest Seed = " << (int)maxSeed << endl;
+		// uint32_t sumSeeds = std::accumulate(seeds.begin(),seeds.end(), uint32_t(0), std::plus<uint32_t>());
+		[[maybe_unused]] uint8_t  maxSeed  = *std::max_element(seeds.begin(), seeds.end());
+		// cout << "Average Seed = " << (double)sumSeeds / nChunks << ", Largest Seed = " << (int)maxSeed << endl;
 		assert(maxSeed < (1 << seedBits));
 
 		uint32_t currOffset = 0;
@@ -74,9 +74,9 @@ struct ChunkInfoCompressed {
 		assert(sizes.size() == seeds.size());
 		nc = sizes.size();
 
-		uint32_t sumSeeds = std::accumulate(seeds.begin(), seeds.end(), uint32_t(0), std::plus<uint32_t>());
+		// uint32_t sumSeeds = std::accumulate(seeds.begin(), seeds.end(), uint32_t(0), std::plus<uint32_t>());
 		uint8_t  maxSeed = *std::max_element(seeds.begin(), seeds.end());
-		cout << "Average Seed = " << (double)sumSeeds / nc << ", Largest Seed = " << (int)maxSeed << endl;
+		// cout << "Average Seed = " << (double)sumSeeds / nc << ", Largest Seed = " << (int)maxSeed << endl;
 		seedBits = maxSeed ? (32 - clz(maxSeed)) : 0;
 
 		uint32_t sumSizes = std::accumulate(sizes.begin(), sizes.end(), 0);
@@ -98,7 +98,7 @@ struct ChunkInfoCompressed {
 		offsetBits = var ? 32 - clz(var) : 0;
 		metaBits = offsetBits + seedBits;
 
-		cout << "offsetBits/seedBits: " << (uint32_t)offsetBits << "/" << (uint32_t)seedBits << endl;
+		//cout << "offsetBits/seedBits: " << (uint32_t)offsetBits << "/" << (uint32_t)seedBits << endl;
 
 		expOffset = 0;
 		actualOffset = 0;

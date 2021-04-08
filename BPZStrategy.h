@@ -10,6 +10,7 @@
 
 using namespace std;
 
+namespace walzer {
 template<typename Hashable>
 struct BPZStrategy {
     static constexpr char stratName[] = "BPZ";
@@ -22,7 +23,7 @@ struct BPZStrategy {
 
 	uint32_t n;
 	Solution sol;
-	
+
 	struct Configuration {
 		double c;
 		friend ostream& operator<<(ostream& out, const Configuration& config) {
@@ -96,7 +97,7 @@ struct BPZStrategy {
                 deg1Verts.push(i);
             }
         }
-        
+
         vector<pair<uint32_t,uint32_t>> peelingOrder;
         peelingOrder.reserve(edges.size());
         while(!deg1Verts.empty()) {
@@ -120,7 +121,7 @@ struct BPZStrategy {
         for(NodeInfo &ni : nodes) {
             remaining += ni.degree;
         }
-        
+
         if (remaining) {
             cout << "FAILURE! (Remaining degrees " << remaining << ")" << endl;
 			return false;
@@ -136,7 +137,7 @@ struct BPZStrategy {
                 sol[it->second] = val;
             }
 			return true;
-        } 
+        }
     }
 
 	inline static bool retrieve(const Solution &sol, const Hash &H) {
@@ -144,3 +145,4 @@ struct BPZStrategy {
 		return sol[reduce(H[0],n)] ^ sol[reduce(H[1],n)] ^ sol[reduce(H[2],n)];
 	}
 };
+}

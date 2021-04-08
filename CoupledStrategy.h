@@ -9,6 +9,8 @@
 
 using namespace std;
 
+namespace walzer {
+
 template<int k,typename Hashable>
 struct CoupledStrategy {
 	static constexpr char stratName[] = "Coupled";
@@ -68,7 +70,7 @@ struct CoupledStrategy {
 			}
 		}
 		stack<int> deg1Verts;
-		for (int i = 0; i < nodes.size(); ++i) {
+		for (int i = 0; (uint32_t)i < nodes.size(); ++i) {
 			if (nodes[i].degree == 1) {
 				deg1Verts.push(i);
 			}
@@ -129,3 +131,4 @@ struct CoupledStrategy {
 		return res;
 	}
 };
+}

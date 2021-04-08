@@ -5,6 +5,8 @@
 #ifndef _MURMURHASH3_H_
 #define _MURMURHASH3_H_
 
+#include <stdint.h>
+
 namespace murmur {
 
 //-----------------------------------------------------------------------------
@@ -21,8 +23,6 @@ typedef unsigned __int64 uint64_t;
 // Other compilers
 
 #else	// defined(_MSC_VER)
-
-#include <stdint.h>
 
 #endif // !defined(_MSC_VER)
 

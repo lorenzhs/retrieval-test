@@ -9,6 +9,8 @@
 
 using namespace std;
 
+namespace walzer {
+
 template<int k,typename Hashable>
 struct FuseStrategy {
 	static constexpr char stratName[] = "Fuse";
@@ -25,7 +27,7 @@ struct FuseStrategy {
 
 	uint32_t n,span,l;
 	Solution sol;
-	
+
 	struct Configuration {
 		double c;
 		uint32_t l;
@@ -132,3 +134,4 @@ struct FuseStrategy {
 		return res;
 	}
 };
+}

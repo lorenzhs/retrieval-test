@@ -2,6 +2,8 @@
 
 using namespace std;
 
+namespace walzer {
+
 /* for benchmarking it sucks if one strategy
  * got "unlucky" and has to restart while others got lucky.
  * allow some cheating. */
@@ -20,18 +22,25 @@ struct Retriever {
 	using Configuration = typename Strategy::Configuration;
 	Configuration config;
 
-	Retriever(const vector<Hashable> &keys, const vector<bool> &values, Configuration config) : seed(GAMED_SEED), config(config) {
+	Retriever(Configuration config) : seed(GAMED_SEED), config(config) {}
+
+	Retriever(const vector<Hashable>& keys, const vector<bool>& values,
+                  Configuration config) : seed(GAMED_SEED), config(config) {
+		Construct(keys, values);
+	}
+
+	void Construct(const vector<Hashable> &keys, const vector<bool> &values)  {
 		assert(keys.size() == values.size());
 		for(;;++seed) {
 			if (seed >= MAX_TRIALS) {
 				return;
 			}
 			Strategy S(keys.size(), config);
-			for (int i = 0; i < keys.size(); ++i) {
+			for (size_t i = 0; i < keys.size(); ++i) {
 				S.addElement(Hash(keys[i], seed), values[i]);
 			}
 			if (S.runConstruction()) {
-				swap(sol, S.sol);
+                            std::swap(sol, S.sol);
 				break;
 			}
 		}
@@ -53,3 +62,4 @@ struct Retriever {
 		return seed - GAMED_SEED; // one seed to rule them all
 	}
 };
+}

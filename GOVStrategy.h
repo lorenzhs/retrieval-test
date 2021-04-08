@@ -14,6 +14,8 @@
 using boost::numeric::ublas::bounded_array;
 using namespace std;
 
+namespace walzer {
+
 template<int k,typename Hashable>
 struct GOVStrategy {
     static constexpr char stratName[] = "GOV";
@@ -28,7 +30,7 @@ struct GOVStrategy {
 			return out << "(c = " << config.c << ")";
 		}
 	};
-	
+
 	Line sol;
 	uint8_t* data() { return (uint8_t*)sol.v.data(); };
 	struct Meta {
@@ -46,7 +48,7 @@ struct GOVStrategy {
 	};
 
 	typedef vector<Line> Matrix;
-    
+
     typedef enum { EQ_SPARSE, EQ_SOLVED, EQ_DENSE } EqState;
     struct Equation {
         bounded_array<uint32_t,k> idleVars;
@@ -62,16 +64,16 @@ struct GOVStrategy {
             idleVars.resize(s-1);
         }
     };
-    
+
     typedef enum { VAR_SOLVED, VAR_IDLE, VAR_DENSE } VarState;
     struct Variable {
         vector<uint32_t> eqs;
         VarState state;
     };
-    
+
     vector<Equation> eqs;
     vector<Variable> vars;
-    
+
     uint32_t nvars;
 	GOVStrategy(size_t m, Configuration config) {
 		nvars = m / config.c;
@@ -81,7 +83,7 @@ struct GOVStrategy {
 		meta.sizeBytes = nvars / 8;
 		meta.sizeLogical = nvars;
     }
-    
+
 	void addElement(const Hash& H, bool rhs) {
 		array<uint32_t, k> var;
         for (int i = 0; i < k; ++i) var[i] = reduce(H[i], nvars);
@@ -124,14 +126,14 @@ bool GOVStrategy<l,Hashable>::runConstruction() {
             varsSorted.push_back(pair.second);
         }
     }
-    
+
     /* Lazy Gauss Solver */
     stack<size_t> lowDegEqs;
     for(size_t i = 0; i < eqs.size(); ++i) {
         if (eqs[i].idleVars.size() <= 1)
             lowDegEqs.push(i);
     }
-    
+
     size_t nextActivation = 0;
     vector<size_t> activationOrder;
     vector<size_t> solveOrder;
@@ -178,7 +180,7 @@ bool GOVStrategy<l,Hashable>::runConstruction() {
             }
         }
     }
-    
+
     /* Solve the Core using the Method of Four Russians */
     Matrix M;
     vector<bool> rhss;
@@ -189,11 +191,11 @@ bool GOVStrategy<l,Hashable>::runConstruction() {
             rhss.push_back(eq.rhs);
         }
     }
-    
+
     Line activeVarSol(activationOrder.size());
     if(!fourRussianGauss(M,rhss,activeVarSol)) return false;
     sol.resize(nvars);
-    
+
     /* attach solutions to corresponding variables */
     for(size_t i = 0; i < activationOrder.size(); ++i) {
         size_t vid = activationOrder[i];
@@ -219,13 +221,13 @@ bool GOVStrategy<l,Hashable>::fourRussianGauss(/*in */Matrix &M,
     int n = M.size();
     if (n == 0) return true;
     int m = M[0].size();
-    
+
 
     int r = 0, c = 0;
     auto chooseK = [&]() -> int {
         return (m - c <= 3 ? 1 : log2(m - c) - log2(log2(m - c)));
     };
-    
+
     vector<int> pivots;
     while ((r < n) && (c < m)) {
         int k = chooseK();
@@ -237,7 +239,7 @@ bool GOVStrategy<l,Hashable>::fourRussianGauss(/*in */Matrix &M,
         for (int rr = r; rr < n; ++rr) {
             uint32_t p = M[rr].get(view);
             if (!p) continue;
-            
+
             if (T[p].size()) {
                 M[rr].addFrom(T[p],c);
                 assert(M[rr].get(view) == 0);
@@ -265,8 +267,8 @@ bool GOVStrategy<l,Hashable>::fourRussianGauss(/*in */Matrix &M,
         for (uint32_t p = 1; (int)p < (1 << k); ++p)
             if (T[p].size())
                 pivotPattern[ctz(p)] = p;
-        
-        int oldr = r;
+
+        [[maybe_unused]] int oldr = r;
         for(int cc = 0; cc < k; ++cc) {
             int p = pivotPattern[cc];
             if (p != -1) {
@@ -299,4 +301,5 @@ bool GOVStrategy<l,Hashable>::fourRussianGauss(/*in */Matrix &M,
     }
 
     return true;
+}
 }

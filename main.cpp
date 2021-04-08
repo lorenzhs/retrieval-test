@@ -14,6 +14,8 @@
 #include "BPZStrategy.h"
 #include <cstring>
 
+using namespace walzer;
+
 map<string, PerformanceLog> PerformanceLog::logs;
 vector<string> PerformanceLog::creationOrder;
 
@@ -33,7 +35,7 @@ int main() {
 	 * maybe because it gets hot. */
 	int outerRepeats = 10;
 	int innerRepeats = 1;
-	
+
 	#define TEST_BPZ
 	#define TEST_GOV3
 	#define TEST_GOV4
@@ -41,9 +43,9 @@ int main() {
 	#define TEST_TWOBLOCK
 	#define TEST_ONEBLOCK
 	#define TEST_COUPLED
-	
+
 	//#define TEST_FUSE
-	
+
 	char teXParamsBuf[100];
 
 	for (int i = 0; i < outerRepeats; ++i) {
@@ -201,7 +203,7 @@ int main() {
 			tester.testAll(keys, config, innerRepeats, teXParamsBuf);
 		}
 		#endif
-		
+
 		#ifdef TEST_ONEBLOCK
 		{
 			// working comfortably

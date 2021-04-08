@@ -2,6 +2,7 @@
 
 #include "ChunkInfo.h"
 #include "util/util.h"
+#include <string.h>
 using namespace std;
 
 namespace walzer {

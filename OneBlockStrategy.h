@@ -10,6 +10,7 @@
 #include "util/xxhash.hpp"
 using namespace std;
 
+namespace walzer {
 /*
     Variant of the OneBlockStrategy where
     • Each line contains 64*numWords many 1's
@@ -27,7 +28,7 @@ struct OneBlockStrategy {
         words[0] = p;
         using hash_t = xxh::hash64_t;
         if constexpr (numWords > 1) {
-            // generate 64 more random bits 
+            // generate 64 more random bits
             words[1] = xxh::xxhash3<64>({ p }, uint64_t(1));
             // generate the rest with double hashing. why? because it works.
             for (uint64_t i = 2; i < numWords; ++i) {
@@ -177,3 +178,4 @@ struct OneBlockStrategy {
         return true;
     }
 };
+}

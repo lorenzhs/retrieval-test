@@ -8,6 +8,8 @@
 #include <cxxabi.h>
 #endif
 
+namespace walzer {
+
 using std::chrono::duration_cast;
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds MilliSeconds;
@@ -173,3 +175,5 @@ struct RetrieverTester {
         testQueries(R, keys, log, max(5, times));
     }
 };
+
+}
