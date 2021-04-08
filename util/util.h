@@ -1,8 +1,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "MurmurHash3.cpp"
-#include "MurmurHash3.h"
 
 #include <algorithm>
 #include <array>
@@ -18,8 +16,13 @@
 #include <vector>
 //#include "xxhash.hpp"
 
+#ifdef USE_XXHASH
 #define XXH_INLINE_ALL
 #include <xxhash.h>
+#else
+#include "MurmurHash3.cpp"
+#include "MurmurHash3.h"
+#endif
 
 using namespace std;
 using std::chrono::duration_cast;
@@ -174,10 +177,6 @@ struct UniqueRandomInt64 {
 unordered_set<uint64_t> UniqueRandomInt64::usedRandomInt64;
 mt19937_64 UniqueRandomInt64::rnd;
 
-void do_hash(const string& s, uint32_t seed, void* buf) {
-    murmur::MurmurHash3_x64_128(s.c_str(), s.size(), seed, buf);
-}
-
 /* What I imagine it does:
 uint32_t reduce(uint32_t hash, uint32_t domain) {
     return hash % domain;
@@ -214,7 +213,8 @@ void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
 #elif USE_XXHASH
 void do_hash(uint64_t key, uint32_t seed, void* buf) {
     XXH128_hash_t* p = reinterpret_cast<XXH128_hash_t*>(buf);
-    *p = XXH3_128bits_withSeed(reinterpret_cast<const char*>(&key), sizeof(uint64_t), seed);
+    *p = XXH3_128bits_withSeed(reinterpret_cast<const char*>(&key),
+                               sizeof(uint64_t), seed);
 }
 void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
     do_hash(s.val, seed, buf);
@@ -225,6 +225,18 @@ void do_hash(uint64_t key, uint32_t seed, void* buf) {
 }
 void do_hash(const UniqueRandomInt64& s, uint32_t seed, void* buf) {
     murmur::MurmurHash3_x64_128(&s, sizeof(UniqueRandomInt64), seed, buf);
+}
+#endif
+
+// String hashing
+#if USE_XXHASH
+void do_hash(const string& s, uint32_t seed, void* buf) {
+    XXH128_hash_t* p = reinterpret_cast<XXH128_hash_t*>(buf);
+    *p = XXH3_128bits_withSeed(s.c_str(), s.size(), seed);
+}
+#else
+void do_hash(const string& s, uint32_t seed, void* buf) {
+    murmur::MurmurHash3_x64_128(s.c_str(), s.size(), seed, buf);
 }
 #endif
 
