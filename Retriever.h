@@ -29,7 +29,8 @@ struct Retriever {
 		Construct(keys, values);
 	}
 
-	void Construct(const vector<Hashable> &keys, const vector<bool> &values)  {
+        template <typename data_t = bool>
+	void Construct(const vector<Hashable> &keys, const vector<data_t> &values)  {
 		assert(keys.size() == values.size());
 		for(;;++seed) {
 			if (seed >= MAX_TRIALS) {
@@ -50,7 +51,7 @@ struct Retriever {
 		return Strategy::numBits(sol) > 0;
 	}
 
-	inline bool retrieve(const Hashable &s) const {
+	inline auto retrieve(const Hashable &s) const {
 		return Strategy::retrieve(sol, Hash(s, seed));
 	}
 
