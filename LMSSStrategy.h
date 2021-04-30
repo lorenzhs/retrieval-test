@@ -11,7 +11,7 @@ using namespace std;
 
 namespace walzer {
 
-template <typename Hashable>
+template <typename Hashable, typename data_t = bool>
 struct RetrieverLMSS {
     static constexpr char stratName[] = "LMSS";
     using Hashable_t = Hashable;
@@ -61,24 +61,26 @@ struct RetrieverLMSS {
 
     struct Solution {
         vector<uint32_t> dist;
-        vector<bool> v;
+        vector<data_t> v;
         uint32_t N;
     } sol;
     static size_t numBits(const Solution& sol) {
-        return sol.dist.size() * sizeof(sol.dist[0]) * 8 + sol.v.size();
+        return sol.dist.size() * sizeof(sol.dist[0]) * 8 +
+               sol.v.size() *
+                   (std::is_same_v<data_t, bool> ? 1 : sizeof(data_t) * 8);
     }
 
     uint32_t n, N;
     using Edge = vector<uint32_t>;
     vector<Edge> edges;
-    vector<bool> values;
+    vector<data_t> values;
 
     RetrieverLMSS(size_t m, Configuration config) { /* # ele/chunk to aim for */
         n = m / config.c;
         buildDistribution(config.D);
         N = n * (1 - 1.0 / config.D / config.D);
     }
-    void addElement(const Hash& H, bool rhs) {
+    void addElement(const Hash& H, data_t rhs) {
         /* note: I copy the vector of hashes here */
         int d = deg(dist, H.getFirstHash()) + 3;
         vector<uint32_t> vec = H.getMoreHashes(d);
@@ -138,10 +140,10 @@ struct RetrieverLMSS {
         } else {
             // cout << "Success!" << endl;
 
-            vector<bool> v(n);
+            vector<data_t> v(n);
             for (auto it = peelingOrder.rbegin(); it != peelingOrder.rend(); ++it) {
                 Edge& e = edges[it->first];
-                bool val = values[it->first];
+                data_t val = values[it->first];
                 for (uint32_t i : e) {
                     val ^= v[i];
                 }
@@ -154,12 +156,12 @@ struct RetrieverLMSS {
         }
     }
 
-    inline static bool retrieve(const Solution& sol, const Hash& H) {
+    inline static data_t retrieve(const Solution& sol, const Hash& H) {
         /* this heavily assumes little endian and stuff */
         /* this heavily assumes l = 8 and stuff */
         const vector<uint32_t>& vec =
             H.getMoreHashes(deg(sol.dist, H.getFirstHash()) + 3);
-        bool res = false;
+        data_t res = 0;
         for (uint32_t i = 0; i < 3; ++i) {
             uint32_t p = reduce(vec[i], sol.v.size() - sol.N) + sol.N;
             res ^= sol.v[p];

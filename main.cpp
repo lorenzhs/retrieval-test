@@ -134,6 +134,33 @@ int main() {
 			tester.testAll(keys, config, innerRepeats, teXParamsBuf);
 			GAMED_SEED = 0;
 		}
+                // LMSS with 8-bit values
+		{
+			constexpr int D = 12; double c = 0.9;
+			sprintf(teXParamsBuf, "D = %d, c = %.2f", D, c);
+			using Strat = RetrieverLMSS<Hashable,uint8_t>;
+			Strat::Configuration config{ c, D };
+			RetrieverTester<Retriever<Strat>> tester;
+			tester.testAll(keys, config, innerRepeats, teXParamsBuf);
+		}
+		{
+			constexpr int D = 150; double c = 0.99;
+			sprintf(teXParamsBuf, "D = %d, c = %.2f", D, c);
+			using Strat = RetrieverLMSS<Hashable,uint8_t>;
+			Strat::Configuration config{ c, D };
+			RetrieverTester<Retriever<Strat>> tester;
+			tester.testAll(keys, config, innerRepeats, teXParamsBuf);
+		}
+		{
+			GAMED_SEED = 2;
+			constexpr int D = 800; double c = 0.997;
+			sprintf(teXParamsBuf, "D = %d, c = %.3f", D, c);
+			using Strat = RetrieverLMSS<Hashable,uint8_t>;
+			Strat::Configuration config{ c, D };
+			RetrieverTester<Retriever<Strat>> tester;
+			tester.testAll(keys, config, innerRepeats, teXParamsBuf);
+			GAMED_SEED = 0;
+		}
 		#endif
 		#ifdef TEST_COUPLED
 		{
