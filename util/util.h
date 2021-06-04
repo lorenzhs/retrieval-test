@@ -107,7 +107,7 @@ double avg(const vector<double>& v) {
     return sum / v.size();
 }
 ostream& operator<<(ostream& out, const PerformanceLog& log) {
-    for (const pair<string, vector<double>>& p : log.data) {
+    for (const pair<const string, vector<double>>& p : log.data) {
         out << p.first << ": " << avg(p.second) << endl;
     }
     return out;
