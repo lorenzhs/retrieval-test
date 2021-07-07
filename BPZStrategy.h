@@ -94,7 +94,7 @@ struct BPZStrategy {
         peelingOrder.resize(done);
 #else
         stack<int> deg1Verts;
-        for (int i = 0; i < n; ++i) {
+        for (uint32_t i = 0; i < n; ++i) {
             if (nodes[i].degree == 1) {
                 deg1Verts.push(i);
             }
